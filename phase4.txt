@@ -1,0 +1,2 @@
+1) better way to resove promises in order with rejection.
+2)

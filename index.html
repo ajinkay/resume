@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <link rel="stylesheet" href="style.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="script.js"></script>
+  </head>
+
+  <body>
+    <h1>ACME PRODUCT</h1>
+    <script>
+  /*
+var journel=[];
+function addEntry(event,changeFlag)
+{
+	journel.push({
+	events: event,
+	change: changeFlag
+	
+	});
+
+}
+
+addEntry(["work", "touched tree", "pizza", "running",
+          "television"], false);
+addEntry(["work", "ice cream", "cauliflower", "lasagna",
+          "touched tree", "brushed teeth"], false);
+addEntry(["weekend", "cycling", "break", "peanuts",
+          "beer"], true);
+		  
+		  
+	function hasEvent(event,entry){
+	return entry.events.indexOf(event)!= -1;
+	}
+	
+function tableFor(event, journal) {
+  var table = [0, 0, 0, 0];
+  for (var i = 0; i < journal.length; i++) {
+    var entry = journal[i], index = 0;
+    if (hasEvent(event, entry)) index += 1;
+    if (entry.change) index += 2;
+    table[index] += 1;
+  }
+  return table;
+}
+
+console.log(tableFor("pizza",journel));*/
+ /* function range(x,y,z)
+{
+var arr=[];
+var i=0;
+   if(z==undefined)
+   {
+		while(x<=y){
+			arr[i++]=x;
+			x+=1;
+			
+		}
+   
+   }
+else
+{
+       if(z>0)
+	   {
+		while(x<=y)
+		{
+			arr[i++]=x;
+			x+=z;
+		}
+		}
+		else if(z<0)
+		{
+			while(x>=y)
+			 {
+					arr[i++]=x;
+					x+=z;
+			}
+			
+		}
+		else{
+			console.log("adding 0 in the each iteration  will lead to nothing");
+				return;
+		}
+}
+
+console.log(arr);
+
+
+}	
+ range(12,10,0); */
+/*  
+  function reverseArrayInPlace(arr)
+  {
+    
+		for (var i=0;i<arr.length/2;i++)
+		{
+		      console.log(i);
+		     
+			temp= arr[arr.length-1-i];
+			arr[arr.length-1-i]=arr[i];
+			arr[i]=temp;
+			
+			
+		}
+		console.log(arr);
+  }
+  
+  reverseArrayInPlace([1,2,3,4,5,6,7,8,9]);
+  */
+/*
+  function arrayTOList(a)
+  {
+		/*var list={};
+		 
+		for(var i=arr.length-1;i>=0;i--)
+		{
+		  var obj={}
+		obj.value=arr[i];
+		   if(list.rest===undefined)
+		   {
+		   
+		  
+		     obj.rest=null;
+			 list=obj;
+			
+		   }
+		   else
+		   {
+		  
+			obj.rest=list;
+			list=obj;
+		
+		   }
+		   
+		  
+		    
+		}
+		
+	return list;*/
+	/* i=a.length-1;
+	if(i>0)
+	{
+	    var val=a[0];
+		a=a.slice(1);
+	   return {value: val, rest: arrayTOList(a)};
+	}
+	else
+	{
+	 return {value:a[0],rest:null}
+	}
+  }
+  
+  console.log(arrayTOList([10,20,30,40,50]));
+ 
+
+  function ListTOArray(x)
+  {
+		
+	
+	arr.push(x.value);
+    while(x.rest === null)
+   {		//val=x.value;
+		
+		 return arr;
+	  
+   }
+   
+  }
+  console.log(ListTOArray(arrayTOList([10,20,30,40,50])));*/
+/*function deepEqual(obj1,obj2)
+{
+  var arr1=[];
+  var arr2=[];
+  var arr3=[];
+  var arr4=[];
+  				
+   if(typeof(obj1) == typeof(obj2) && obj1!=null && obj2!=null && typeof(obj1)=="object" )
+   {
+  
+     for(var x in obj1)
+     {
+        
+       arr1.push(x);
+	   arr3.push(obj1[x]);
+       
+     }
+     for(var x in obj2)
+     {
+       arr2.push(x);
+	    arr4.push(obj2[x]);
+     }
+    if(arr1.length == arr2.length )
+        { 
+		   
+				
+        	for(var i=0;i<arr1.length;i++)
+            {
+			
+			  if(arr1[i]!=arr2[i])
+			  {
+				return false;
+			  }
+			  
+				if(typeof(arr3[i])== typeof(arr4[i]) && typeof(arr3[i])=="object"){
+						deepEqual(arr3[i],arr4[i]);
+				}
+				else if(typeof(arr3[i])!= typeof(arr4[i]))
+				{
+						return false;
+				}
+				else
+				{
+				   if(i===arr1.length-1)
+				   {
+						return arr3[i]===arr4[i];
+				   }
+				}
+              
+        }
+                 }
+        else
+        {
+         return false;
+        }
+   }
+ 
+else if(typeof(obj1)!=typeof(obj2))
+ {
+	return false;
+}
+else{
+           return obj1 === obj2;      
+           }
+}
+var obj = {here: {is: "an"}, object: 2};
+console.log(deepEqual(obj, obj));
+// → true
+console.log(deepEqual(obj, {here: 1, object: 2}));
+// → false
+console.log(deepEqual(obj, {here: {is: "an"}, object: 2}));
+// → true*/
+function reduce(a,b)
+{
+console.log("two")
+ console.log(a+b);
+}
+function reduce(a,b,c)
+{
+console.log("three");
+ console.log(a+b+c);
+}
+/*function reduce(a,b)
+{
+console.log("two")
+ console.log(a+b);
+}*/
+reduce(1,2,3);
+reduce(1,2);
+reduce(1);
+</script>
+  </body>
+</html>

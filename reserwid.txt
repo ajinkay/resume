@@ -1,0 +1,926 @@
+
+$(document).ready(function(e){
+    if($(window).width()<768){
+var chkForChkIn = false;
+
+(function(){
+
+
+var mon = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+var fullMon = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var day = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var dte = new Date();
+var tomorrowDte = new Date(dte.getTime() + (24 * 60 * 60 * 1000));
+
+var chkInChkOutSpns = $('#mdetails').find('.rsrvDtailWp');
+      $.each(chkInChkOutSpns,function(i,v){
+          if(i==1){
+          $(v).find('.nd').text(dte.getDate()+' '+fullMon[dte.getMonth()]+' '+dte.getFullYear());
+              var month_check = dte.getMonth()+1;
+              if(month_check != undefined && month_check < 10){
+              month_check = "0" + month_check;
+              }
+              var date_check = dte.getDate();
+
+              if(date_check != undefined && date_check<10){
+
+              date_check = "0" + date_check
+
+              }
+              formData.checkindate = dte.getFullYear()+"-"+month_check+"-"+date_check;
+              formData.checkoutdate = "";
+          }
+          if(i==2){
+          $(v).find('.nd').text(tomorrowDte.getDate()+' '+fullMon[tomorrowDte.getMonth()]+' '+tomorrowDte.getFullYear());
+
+            var month_checkout = tomorrowDte.getMonth()+1
+            if(month_checkout != undefined && month_checkout <10){
+            month_checkout = "0" + month_checkout;
+            }
+            var date_checkout = tomorrowDte.getDate()
+            if(date_checkout!=undefined && date_checkout<10){
+            date_checkout = "0"+ date_checkout
+            }
+              formData.checkoutdate = tomorrowDte.getFullYear()+"-"+month_checkout+"-"+date_checkout;
+          }
+      });
+
+
+
+
+    var findScrchSbmtBtn = $('.homeReserScreenCont').find('.srchSubmtButton');
+
+    if( $('.overlayCont .mob #mstayat_txt').prop('value') != ''){
+         if((currentResource != null &&  currentResource != undefined) && (Category != null && Category != undefined )){
+         mselectCity(currentResource,Category);
+        }
+        if(!findScrchSbmtBtn.attr('onclick')){
+                findScrchSbmtBtn.attr('onclick','findHotels();');
+         }
+    }
+
+ /*******************************   PH-1  START *********************************************/
+    $('.overlayCont .mob').css('padding-top',($(window).height())*0.12166);
+    $('.overlayCont .resSearM').css('height',($(window).height())*0.82805);
+    $('ul.dynamicDropdownAppendMob').css('height',($(window).height())*0.7203);
+    $('.popupValidationMsg').css('top',($(window).height())*0.6503);
+
+ /*******************************   PH-1  END *********************************************/
+
+ /********************************************    FORT   NIGHT  ************************************************** ********************/
+
+ /*   $('.overlayCont').scroll(function(){
+
+            if($(this).scrollTop()>2){
+                $(this).find('a#goBckBtn').css('opacity','0');
+                $(this).find('a#calGoBckBtn').css('opacity','0');
+            }else{
+                $(this).find('a#goBckBtn').css('opacity','1');
+                $(this).find('a#calGoBckBtn').css('opacity','1');
+            }
+
+
+            if($(this).scrollTop()>27){
+                $(this).find('#mcheckin_cont .resWhiInn .chkIn').css('border-top','1px solid rgba(255,255,255,0)');
+                $(this).find('#mcheckout_cont .resWhiInn .reserHd').css('border-top','1px solid rgba(255,255,255,0)');
+            }else{
+                $(this).find('#mcheckin_cont .resWhiInn .chkIn').css('border-top','1px solid rgba(255,255,255,1)');
+                $(this).find('#mcheckout_cont .resWhiInn .reserHd').css('border-top','1px solid rgba(255,255,255,1)');
+            }
+
+
+            if($(this).scrollTop()>29){
+                $(this).find('.reserInpWrp a.reserSerIc').css('opacity','0');
+                $(this).find('.reserInpWrp #mstayat_txt').css('opacity','0');
+            }else{
+                $(this).find('.reserInpWrp a.reserSerIc').css('opacity','1');
+                $(this).find('.reserInpWrp #mstayat_txt').css('opacity','1');
+            }
+
+            if($(this).scrollTop()>44){
+                $(this).find('#mcheckin_cont .resWhiInn .chkIn span:first-child').css('opacity','0');
+                $(this).find('#mcheckin_cont .resWhiInn .chkOut span:last-child').css('color','rgba(255,255,255,0)');
+                $(this).find('#mcheckout_cont .resWhiInn .reserHd span:first-child').css('opacity','0');
+            }else{
+                $(this).find('#mcheckin_cont .resWhiInn .chkIn span:first-child').css('opacity','1');
+                $(this).find('#mcheckin_cont .resWhiInn .chkOut span').css('color','rgba(255,255,255,0.7)');
+                $(this).find('#mcheckout_cont .resWhiInn .reserHd span:first-child').css('opacity','1');
+            }
+
+            if($(this).scrollTop()>72){
+                $(this).find('.reserInpWrp').css('border-bottom','1px solid rgba(255,255,255,0)');
+            }else{
+                $(this).find('.reserInpWrp').css('border-bottom','1px solid rgba(255,255,255,1)');
+            }
+
+            if($(this).scrollTop()>75){
+                $(this).find('#mcheckin_cont .resWhiInn .reserHd span:last-child').css('opacity','0');
+                $(this).find('#mcheckout_cont .resWhiInn .reserHd span:last-child').css('opacity','0');
+            }else{
+                $(this).find('#mcheckin_cont .resWhiInn .reserHd span:last-child').css('opacity','1');
+                $(this).find('#mcheckout_cont .resWhiInn .reserHd span:last-child').css('opacity','1');
+            }
+
+        });
+
+        $('#mstayat').scroll(function(){
+            if($(this).scrollTop() > 200)
+                $('.overlayCont').css('overflow','initial');
+            else
+                $('.overlayCont').css('overflow','scroll');
+        });*/
+/* ************************************************************************************************************************************************/
+
+
+
+    var calWrapp = $('.homeReserScreenCont').find('.calenderWrapper');
+    if(String(dte.getDate()).length == 1)
+    calWrapp.find('.contBox1').find('.chekInDate').text("0"+dte.getDate());
+    else
+    calWrapp.find('.contBox1').find('.chekInDate').text(dte.getDate());
+    calWrapp.find('.contBox1').find('.dayMonth').find('span:first-child').text(day[dte.getDay()]);
+    calWrapp.find('.contBox1').find('.dayMonth').find('span:last-child').text(mon[dte.getMonth()]);
+
+    if(String(tomorrowDte.getDate()).length == 1)
+    calWrapp.find('.contBox3').find('.chekInDate').text("0"+tomorrowDte.getDate());
+    else
+    calWrapp.find('.contBox3').find('.chekInDate').text(tomorrowDte.getDate());
+    calWrapp.find('.contBox3').find('.dayMonth').find('span:first-child').text(day[tomorrowDte.getDay()]);
+    calWrapp.find('.contBox3').find('.dayMonth').find('span:last-child').text(mon[tomorrowDte.getMonth()]);
+
+   var htlInp = $('.mob .resSearM .reserInpWrp');
+    var htlInpTxtBox = htlInp.find('#mstayat_txt');
+
+    htlInpTxtBox.on('input propertychange paste',function(){
+        $(this).closest('.reserInpWrp').siblings('.homeReserScreenCont').find('.srchSubmtButton').attr('onclick','findHotels();');
+    });
+
+
+
+
+
+    htlInp.on('click',function(){
+
+        var goBckBtn =  $(this).closest('.mob').find('#goBckBtn');
+        goBckBtn.css('visibility','visible');
+        goBckBtn.unbind('click');
+        $(this).siblings('.homeReserScreenCont').hide(100);
+        $(this).siblings('.reserScrollMob').show(300);
+        var listItems1 = $(this).siblings('.reserScrollMob').find('#mstayat li');
+
+          listItems1.click(function(){
+          var sbmtQButton = $(this).closest('.reserScrollMob').siblings('.homeReserScreenCont').find('.srchSubmtButton');
+            if(!sbmtQButton.attr('onclick')){
+                sbmtQButton.attr('onclick','findHotels();');
+            }
+
+         var clsName1=$(this).attr("class");
+
+            if(clsName1.search('headingIdentity')>-1)
+            {
+
+            }
+            else{
+                var parT = $(this).parent().parent().parent().parent().parent();
+                parT.siblings('#mcheckin_cont').css('display','none');
+                var clickedVal1 = $(this).find('a:last-child').text();
+
+                parT.css('display','block');
+                parT.find('.reserInpWrp').show(250);
+                parT.find('.homeReserScreenCont').show(250);
+                if(clickedVal1.length>39){
+                    parT.find('.reserInpWrp').find('#mstayat_txt').attr({rows:'2',value:clickedVal1});
+                }
+                else
+                 parT.find('.reserInpWrp').find('#mstayat_txt').attr({rows:'1',value:clickedVal1});
+                 parT.find('.reserScrollMob').css('display','none');
+
+                 goBckBtn.css('visibility','hidden');
+                 goBckBtn.unbind('click');
+            }
+
+
+        });
+
+        goBckBtn.click(function(){
+                $(this).siblings('.resSearM').find('.reserCont .reserScrollMob').hide(300);
+                $(this).siblings('.resSearM').find(' .reserCont .homeReserScreenCont').show(300);
+                $(this).css('visibility','hidden');
+                $(this).unbind('click');
+                //$('.overlayCont').css('overflow','scroll');
+        });
+
+ });
+
+
+ if(!findScrchSbmtBtn.prop('onclick')){
+    findScrchSbmtBtn.click(function(e){
+      if(!$(this).prop('onclick'))
+        $('.homeReserScreenCont').hide(300);
+        $('.reserScrollMob').show(300);
+          $('#goBckBtn').css('visibility','visible');
+          $('#goBckBtn').click(function(){
+                 $(this).siblings('.resSearM').find('.reserCont .reserScrollMob').hide(300);
+                 $(this).siblings('.resSearM').find(' .reserCont .homeReserScreenCont').show(300);
+                 $(this).css('visibility','hidden');
+                 $(this).unbind('click');
+
+         });
+
+     });
+   }
+
+
+    var chkItcGrnPts = 0;
+    $('.clubItcInp').click(function(){
+        if(chkItcGrnPts == 0){
+            $(this).find('.clubItcGreenPnts').prop('checked','checked');
+            $(this).find('#clubItcIcon').css('background','url(/content/dam/ITC/icons/backgroundimg/check_ico.png) no-repeat');
+            ++chkItcGrnPts;
+        }
+        else{
+            $(this).find('.clubItcGreenPnts').prop('checked',null);
+            $(this).find('#clubItcIcon').css('background','url(/content/dam/ITC/icons/backgroundimg/uncheck_ico.png) no-repeat');
+            --chkItcGrnPts;
+
+        }
+
+     });
+
+
+
+
+
+var calWid = $('.homeReserScreenCont .calenderWrapper');
+    calWid.find('.contBox1').click(function(){
+
+var chkIn = $(this).closest('.resWhiCont').siblings('#mcheckin_cont');
+var chkOut = $(this).closest('.resWhiCont').siblings('#mcheckout_cont');
+$(this).closest('.resWhiCont').hide(100);
+        if(chkOut.find('.resWhiInn .chkIn').css('opacity','0.6'))
+            chkOut.find('.resWhiInn .chkIn').css('opacity','1');
+
+
+var showCalChkInDte = new Date(formData.checkindate);
+var showCalChkOutDte = new Date(formData.checkoutdate);
+     chkIn.find('.resWhiInn:first-child').hide();
+     chkIn.find('.resWhiInn .chkIn span:last-child').text(showCalChkInDte.getDate()+" "+mon[showCalChkInDte.getMonth()]+" "+showCalChkInDte.getFullYear());
+	 chkIn.find('.resWhiInn .chkOut span:last-child').text(showCalChkOutDte.getDate()+" "+mon[showCalChkOutDte.getMonth()]+" "+showCalChkOutDte.getFullYear());
+     chkOut.find('.resWhiInn .chkIn span:last-child').text(showCalChkInDte.getDate()+" "+mon[showCalChkInDte.getMonth()]+" "+showCalChkInDte.getFullYear());
+     chkIn.show(300);
+
+$('#goBckBtn').css('display','none');
+$('#calGoBckBtn').css('display','inline-block');
+
+
+});
+
+
+calWid.find('.contBox3').click(function(){
+    //if(chkForChkIn == true){
+        var chkIn = $(this).closest('.resWhiCont').siblings('#mcheckin_cont');
+        var chkOut = $(this).closest('.resWhiCont').siblings('#mcheckout_cont');
+        $(this).closest('.resWhiCont').hide(100);
+
+        var showCalChkInDte = new Date(formData.checkindate);
+        var showCalChkOutDte = new Date(formData.checkoutdate);
+             chkIn.find('.resWhiInn:first-child').hide();
+             chkOut.find('.resWhiInn .chkIn').css('opacity','0.6');
+             chkIn.find('.resWhiInn .chkIn span:last-child').text(showCalChkInDte.getDate()+" "+mon[showCalChkInDte.getMonth()]+" "+showCalChkInDte.getFullYear());
+             chkOut.find('.resWhiInn .chkIn span:last-child').text(showCalChkInDte.getDate()+" "+mon[showCalChkInDte.getMonth()]+" "+showCalChkInDte.getFullYear());
+             chkOut.find('.resWhiInn .chkOut span:last-child').text(showCalChkOutDte.getDate()+" "+mon[showCalChkOutDte.getMonth()]+" "+showCalChkOutDte.getFullYear());
+             chkOut.find('.resWhiInn .chkOut').addClass('calAnimate');
+             chkOut.show(300);
+
+        //if($('#mcheckout_cont .dateConfBtn').hasClass('dis'))
+        $('#mcheckout_cont .dateConfBtn').removeClass('nondis').addClass('dis');
+
+        $('#goBckBtn').css('display','none');
+        $('#calGoBckBtn').css('display','inline-block');
+    /*}
+    else{
+      $('a.menuCls').css('opacity','0');
+      $('.overlayCont div.alert').fadeIn(400);
+      setTimeout(function(){$('.overlayCont div.alert').fadeOut(400);$('a.menuCls').css('opacity','1');},2000);
+    }*/
+});
+
+
+$('#calGoBckBtn').click(function(){
+
+  var reserContMain = $(this).siblings('.resSearM').find('.reserCont');
+  reserContMain.find('.resWhiCont').show(300);
+  reserContMain.find('#mcheckin_cont').hide();
+  reserContMain.find('#mcheckout_cont').hide();
+  reserContMain.find('#mdetails').hide();
+  $(this).css('display','none');
+    $('#goBckBtn').css('display','inline-block');
+});
+
+
+    $('.roomSelect').on('click',function(e){
+        $('.selectionMsg').text(roomPopup);
+
+        if($('.rmAdltChldPopUp .option_first').css('display') == 'flex'){$('.rmAdltChldPopUp .option_first').css('display','none')}
+        if($('.rmAdltChldPopUp .option_fifth').css('display') == 'none'){$('.rmAdltChldPopUp .option_fifth').css('display','flex')}
+
+        $('.menuLogoCont.mbl a.menuCls2').css('display','none');
+        $('.rmAdltChldPopUp').attr('data-rel','room');
+        var numVal = $(this).find('#rmNumber').find('span').text();
+        var radioVal = $('.rmAdltChldPopUp').children();
+
+        $.each(radioVal,function(i,v){
+            if(i==numVal){
+                $(v).find('#radioInp').find('.inp').attr('checked','checked');
+                $(v).find('#radioInp').find('label').html('<i class="fa fa-dot-circle-o fa-lg" aria-hidden="true"></i>');
+
+                $.each($(v).siblings(),function(ind,val){
+                    $(val).find('#radioInp').find('.inp').attr('checked',null);
+                    $(val).find('#radioInp').find('label').html('<i class="fa fa-circle-o fa-lg" aria-hidden="true"></i>');
+                });
+            }
+        });
+
+        $('.rmAdltChldPopUpWrapper').show(300);
+        $('.rmAdltChldPopUp').fadeIn(300);
+        e.stopPropagation();
+    });
+
+    $('.adultSelect').on('click',function(e){
+       $('.selectionMsg').text(adultPopup);
+
+       if($('.rmAdltChldPopUp .option_first').css('display') == 'flex'){$('.rmAdltChldPopUp .option_first').css('display','none')}
+       if($('.rmAdltChldPopUp .option_fifth').css('display') == 'flex'){$('.rmAdltChldPopUp .option_fifth').css('display','none')}
+
+        $('.menuLogoCont.mbl a.menuCls2').css('display','none');
+        $('.rmAdltChldPopUpContainer').css('display','block');
+        $('.rmAdltChldPopUp').attr('data-rel','adult');
+        var numVal2 = $(this).find('#rmNumber').find('span').text();
+        var radioVal2 = $('.rmAdltChldPopUp').children();
+
+        $.each(radioVal2,function(i,v){
+            if(i==numVal2){
+                $(v).find('#radioInp').find('.inp').attr('checked','checked');
+                $(v).find('#radioInp').find('label').html('<i class="fa fa-dot-circle-o fa-lg" aria-hidden="true"></i>');
+
+                $.each($(v).siblings(),function(ind,val){
+                    $(val).find('#radioInp').find('.inp').attr('checked',null);
+                    $(val).find('#radioInp').find('label').html('<i class="fa fa-circle-o fa-lg" aria-hidden="true"></i>');
+                });
+            }
+        });
+
+        $('.rmAdltChldPopUpWrapper').show(300);
+        $('.rmAdltChldPopUp').fadeIn(300);
+        $('.menuLogoCont.mbl a.menuCls2').css('display','block');
+
+        e.stopPropagation();
+    });
+
+    $('.childSelect').on('click',function(e){
+       $('.selectionMsg').text(childPopup);
+
+        if($('.rmAdltChldPopUp .option_first').css('display') == 'none'){$('.rmAdltChldPopUp .option_first').css('display','flex')}
+        if($('.rmAdltChldPopUp .option_fifth').css('display') == 'flex'){$('.rmAdltChldPopUp .option_fifth').css('display','none')}
+        $('.menuLogoCont.mbl a.menuCls2').css('display','none');
+        $('.rmAdltChldPopUpContainer').css('display','block');
+        $('.rmAdltChldPopUp').attr('data-rel','child');
+        var numVal5 = $(this).find('#rmNumber').find('span').text();
+        var radioVal5 = $('.rmAdltChldPopUp').children();
+
+        $.each(radioVal5,function(i,v){
+            if(i==numVal5){
+                $(v).find('#radioInp').find('.inp').attr('checked','checked');
+                $(v).find('#radioInp').find('label').html('<i class="fa fa-dot-circle-o fa-lg" aria-hidden="true"></i>');
+
+
+                $.each($(v).siblings(),function(ind,val){
+                    $(val).find('#radioInp').find('.inp').attr('checked',null);
+                    $(val).find('#radioInp').find('label').html('<i class="fa fa-circle-o fa-lg" aria-hidden="true"></i>');
+                });
+            }
+        });
+
+        $('.rmAdltChldPopUpWrapper').show(300);
+        $('.rmAdltChldPopUp').fadeIn(300);
+        e.stopPropagation();
+    });
+
+/***********************************************************   FORT  NIGHT ************************************************************/
+
+    $('.rmAdltChldPopUpWrapper').click(function(e){
+        if($(this).closest('.rmAdltChldPopUp').length == 0)
+            $(this).hide(300);
+            $('.menuLogoCont.mbl a.menuCls2').css('display','none');
+            e.stopPropagation();
+    });
+
+    var validObj = {child:0,adult:1};
+    $('.rmAdltChldPopUp .option #radioInp').on('click',function(e){
+
+        if($(this).parent().parent().attr('data-rel')=="room"){
+            if($(this).parent().hasClass('option_first')){
+                e.preventDefault();
+                e.stopPropagation();
+            }else{
+                var allInp = $(this).parent().siblings().find('#radioInp').find('.inp');
+                $(this).find('.inp').attr('checked','checked');
+                $(this).find('label').html('<i class="fa fa-dot-circle-o fa-lg" aria-hidden="true"></i>');
+
+                $.each(allInp,function(i,v){
+                    if($(v).attr('checked') == 'checked'){
+                        $(v).attr('checked',null);
+                        $(v).next('label').html('<i class="fa fa-circle-o fa-lg" aria-hidden="true"></i>');
+                    }
+                });
+                var rmValues = $(this).find('.inp').attr('value');
+
+                $('.rmAdltChldPopUpWrapper').hide(300);
+                $('.menuLogoCont.mbl a.menuCls2').css('display','block');
+                $('.roomSelect').find('#rmNumber span:first-child').text(rmValues);
+
+                var inpFlds = $('.mob').find('#mdetails').find('.rsrvDtailWp');
+                $.each(inpFlds,function(i,v){
+                    if(i==3){
+                        if(rmValues==1){
+                            $(v).find('#numberOfRoomsWidMob').attr('value','1 Room');
+                        }
+                        else{
+                            $(v).find('#numberOfRoomsWidMob').attr('value',rmValues+' Rooms');
+                        }
+
+                    }
+                });
+                e.stopPropagation();
+            }
+        }
+        else if($(this).parent().parent().attr('data-rel')=="adult"){
+            if($(this).parent().hasClass('option_first')){
+                e.preventDefault();
+                e.stopPropagation();
+            }else{
+            var adlValues = $(this).find('.inp').attr('value');
+            var parsedAdl  = parseInt(adlValues);
+            if(( parsedAdl<4) && ( (validObj['child']+parsedAdl)<5 )){
+
+              var allInp3 = $(this).parent().siblings().find('#radioInp').find('.inp');
+                              $(this).find('.inp').attr('checked','checked');
+                              $(this).find('label').html('<i class="fa fa-dot-circle-o fa-lg" aria-hidden="true"></i>');
+
+                              $.each(allInp3,function(i,v){
+                                  if($(v).attr('checked') == 'checked'){
+                                      $(v).attr('checked',null);
+                                      $(v).next('label').html('<i class="fa fa-circle-o" aria-hidden="true"></i>');
+                                  }
+                              });
+
+
+                              validObj['adult'] = parsedAdl;
+
+                              $('.rmAdltChldPopUpWrapper').hide(300);
+                              $('.menuLogoCont.mbl a.menuCls2').css('display','block');
+                              $('.adultSelect').find('#rmNumber span:first-child').text(adlValues);
+
+                              var inpAdltFlds = $('.mob').find('#mdetails').find('.rsrvDtailWp');
+                              $.each(inpAdltFlds,function(i,v){
+                                  if(i==4){
+                                      if(adlValues==1){
+                                          $(v).find('#numberOfAdultsWidMob').attr('value','1 Adult/room');
+                                      }
+                                      else{
+                                          $(v).find('#numberOfAdultsWidMob').attr('value',adlValues+' Adults/room');
+                                      }
+                                  }
+                         });
+            }else{
+
+              if(parsedAdl > 3){
+                 $('.popupValidationMsg').text(maxAdultError);
+                  $('.popupValidationMsg').fadeIn(200);
+                  setTimeout(function(){$('.popupValidationMsg').fadeOut(300)},2000);
+              }
+               else if((validObj['child']+parsedAdl)>4){
+                 $('.popupValidationMsg').text(maxOccuptError);
+                   $('.popupValidationMsg').fadeIn(200);
+                  setTimeout(function(){$('.popupValidationMsg').fadeOut(300)},2000);
+                }
+            }
+                e.stopPropagation();
+            }
+        }
+
+        else if($(this).parent().parent().attr('data-rel')=="child"){
+
+                var chldNum = $(this).find('.inp').attr('value');
+                var parsedChldNum = parseInt(chldNum);
+                if((parsedChldNum<4) && ((validObj['adult']+parsedChldNum)<5)){
+
+                                   var allInp6 = $(this).parent().siblings().find('#radioInp').find('.inp');
+                                   $(this).find('.inp').attr('checked','checked');
+                                   $(this).find('label').html('<i class="fa fa-dot-circle-o fa-lg" aria-hidden="true"></i>');
+
+                                   $.each(allInp6,function(i,v){
+                                       if($(v).attr('checked') == 'checked'){
+                                           $(v).attr('checked',null);
+                                           $(v).next('label').html('<i class="fa fa-circle-o" aria-hidden="true"></i>');
+                                       }
+                                   });
+                                    validObj['child'] = parsedChldNum;
+
+                                   $('.rmAdltChldPopUpWrapper').hide(300);
+                                   $('.menuLogoCont.mbl a.menuCls2').css('display','block');
+                                   $('.childSelect').find('#rmNumber span:first-child').text($(this).find('.inp').attr('value'));
+                }else{
+                   if(parsedChldNum > 3){
+                       $('.popupValidationMsg').text(maxOccuptError).fadeIn(200);
+                       setTimeout(function(){$('.popupValidationMsg').fadeOut(300)},2000);
+
+
+                   }
+                   else if((validObj['adult']+parsedChldNum)>4){
+                      $('.popupValidationMsg').text(maxOccuptError);
+                       $('.popupValidationMsg').fadeIn(200);
+                       setTimeout(function(){$('.popupValidationMsg').fadeOut(300)},2000);
+
+                   }
+                }
+            e.stopPropagation();
+            }
+
+    });
+
+    /*************************************************************************************************************************************************/
+
+    var hotelDstAirValue = $('.mob').find('.reserInpWrp #mstayat_txt').attr('value');
+    var listValues = $('#mstayat').find('li');
+
+
+})();
+
+
+ $('.dateConfBtn').click(function(){
+
+                    $(this).parent().hide(100);
+                    $("#mstayat_cont").show(300);
+                    $('#goBckBtn').css('visibility','hidden');
+                    $('#calGoBckBtn').css('display','none');
+                    $('#mcheckout_cont').find('.resWhiInn .chkOut').removeClass('calAnimate');
+
+                });
+
+
+  	$("#e3").datepick({
+  		minDate: 0,
+  		rangeSelect: false,
+  		changeMonth: false,
+  		onSelect: function(d) {
+
+
+            chkForChkIn = true;
+  		    $('#mcheckOutEdit').show();
+  			$("#mcheckin_cont").hide();
+  			$("#mcheckout_cont").show();
+
+            $('#calGoBckBtn').css('display','none');
+            $('#goBckBtn').css('display','inline-block');
+
+
+  			var checkIn;
+  			var checkInMin=new Date(d[0].toString());
+  			var los=1;
+
+  			if(isFlexiblePlan==false)
+              {
+                  if(restrictionArr!=undefined && restrictionArr.length>0)
+                  {
+                      var maxLOS;
+
+                      if(restrictionArr[0].hasOwnProperty('maxLengthOfStay'))
+                      {
+                          maxLOS=parseInt(restrictionArr[0].maxLengthOfStay);
+                          if(!restrictionArr[0].hasOwnProperty('sellEndDate'))
+                          {
+                              var maxCheckoutDate=new Date(d[0].toString());
+                              maxCheckoutDate.setDate(maxCheckoutDate.getDate()+maxLOS);
+                              $("#e4").datepick('option', {maxDate:maxCheckoutDate});
+                          }
+                          else
+                          {
+                              var sellEndDate=new Date(restrictionArr[0].sellEndDate);
+                              //sellEndDate.setDate(sellEndDate.getDate());
+                              var currentDate=new Date();
+                              var timeDiff = sellEndDate.getTime() - currentDate.getTime();
+                              var lengthOfStayCE = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                              if(lengthOfStayCE>maxLOS)
+                               {
+                                  var maxCheckoutDate=new Date(d[0].toString());
+                                  maxCheckoutDate.setDate(maxCheckoutDate.getDate()+maxLOS);
+                                  $("#e4").datepick('option', {maxDate:maxCheckoutDate});
+                               }
+
+                          }
+                      }
+
+
+                      if(restrictionArr[0].hasOwnProperty('minLengthOfStay'))
+                      {
+                          los=parseInt(restrictionArr[0].minLengthOfStay);
+
+                      }
+
+                      if(restrictionArr[0].hasOwnProperty('minLengthOfStay') && restrictionArr[0].hasOwnProperty('maxLengthOfStay'))
+                      {
+                          if(maxLOS=los)
+                          {
+                             $('#mcheckOutEdit').hide();
+                          }
+                      }
+
+                      if(restrictionArr[0].hasOwnProperty('dayRestriction') && restrictionArr[0].dayRestriction==true)
+                      {
+                          checkIn = new Date(d[0].toString());
+                          /*if(maxCheckIn!=undefined && maxCheckIn!=-1 && maxCheckIn!=null)
+                          {
+                              if(checkIn.getTime()<maxCheckIn.getTime())
+                              {
+                                  $("#e4").datepick('option', {maxDate:checkIn});
+                              }
+                          }
+                          else
+                          {*/
+                              var days = ['sunday','monday','tuesday','wednesday',
+                                                                                                                                'thursday','friday','saturday'];
+
+                              //var checkInDay=getDayOfWeek(checkIn);
+
+                              while((restrictionArr[0].hasOwnProperty(days[checkIn.getDay()])))
+                              {
+
+                                 checkIn.setDate(checkIn.getDate()+1);
+                              }
+                              //$("#e4").datepick('option', {maxDate:checkIn});
+                              var offerMonth=(checkIn.getMonth()+1);
+
+                              if(offerMonth!=undefined && offerMonth<10)
+                              {
+                                  offerMonth='0'+offerMonth;
+                              }
+
+                              var offerDay=checkIn.getDate();
+                              if(offerDay!=undefined && offerDay<10)
+                              {
+                                  offerDay='0'+offerDay;
+                              }
+
+
+
+                              localStorage.setItem("offerEndDate",offerMonth+"/"+offerDay+"/"+checkIn.getFullYear());
+                              sessionStorage.setItem("offerEndDate",offerMonth+"/"+offerDay+"/"+checkIn.getFullYear());
+
+                              $("#e4").datepick('option', {maxDate:checkIn});
+                          //}
+                      }
+                  }
+              }
+
+              checkInMin.setDate(checkInMin.getDate()+los);
+              $("#e4").datepick('option', {minDate:checkInMin});
+
+              if(los>1)
+              {
+                  var selectedDate=new Date(d[0].toString());
+
+                  for(var count=1;count<=los;count++)
+                  {
+                      selectedDate.setDate(selectedDate.getDate()+1);
+                      $("#e4 .dp"+selectedDate.getTime()).addClass("datepick-selected");
+                  }
+              }
+  			var month=(d[0].getMonth()+1);
+
+              if(month!=undefined&&month<10)
+              {
+                  month='0'+month;
+              }
+              var day=d[0].getDate();
+              if(day!=undefined && day<10)
+              {
+                  day='0'+day;
+              }
+
+
+  			$(".mstay-checkin .nd").html(d[0].getDate() + " " + monthNames[d[0].getMonth()] + " " + d[0].getFullYear());
+
+
+
+
+  			formData.checkindate = d[0].getFullYear()+"-"+month+"-"+day;
+  			//formData.checkoutdate = "";
+            if(new Date(formData.checkindate).getTime() >= new Date(formData.checkoutdate).getTime()){
+  			   //formData.checkoutdate = new Date(new Date(formData.checkindate).getTime() + (24 * 60 * 60 * 1000));
+  			  var tmrrwChckOut = new Date(new Date(formData.checkindate).getTime() + (24 * 60 * 60 * 1000));
+  			  var tmrrwChckOutDate = tmrrwChckOut.getDate();
+  			  if(tmrrwChckOutDate < 10){
+  			     tmrrwChckOutDate = '0'+tmrrwChckOutDate;
+  			  }
+  			  var tmrrwChckOutMonth = (tmrrwChckOut.getMonth()+1);
+               if(tmrrwChckOutMonth < 10){
+               	     tmrrwChckOutMonth = '0'+tmrrwChckOutMonth;
+        	  }
+  			  formData.checkoutdate =tmrrwChckOut.getFullYear()+"-"+tmrrwChckOutMonth+"-"+tmrrwChckOutDate;
+  			}
+
+
+
+                var mStayContent = $("#mstayat_cont");
+                var calWrapp = mStayContent.find('.homeReserScreenCont .calenderWrapper');
+
+                var chkInEle = $('#mdetails .resWhiInn .reserInnWrp .rsrvDtailWp');
+
+                var ddss = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                var mmnnts = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+
+                var dd2 = new Date(formData.checkindate);
+                if(String(dd2.getDate()).length == 1)
+                calWrapp.find('.contBox1 .chekInDate').text("0"+dd2.getDate());
+                else
+                calWrapp.find('.contBox1 .chekInDate').text(dd2.getDate());
+                calWrapp.find('.contBox1 .dayMonth span:first-child').text(ddss[dd2.getDay()]);
+                calWrapp.find('.contBox1 .dayMonth span:last-child').text(mmnnts[dd2.getMonth()]);
+
+                var chkOutFnlDte = new Date(formData.checkoutdate);
+                var timeDiff = Math.abs(chkOutFnlDte.getTime() - dd2.getTime());
+                var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                calWrapp.find('.contBox2 .nights').text(diffDays);
+
+                var nightsNumber = parseInt(calWrapp.find('.contBox2 .nights').text());
+                if(nightsNumber>1){
+
+                    calWrapp.find('.contBox2 .nightsText').text('- Nights -');
+                }
+
+                if(String(chkOutFnlDte.getDate()).length == 1)
+                calWrapp.find('.contBox3 .chekInDate').text("0"+chkOutFnlDte.getDate());
+                else
+                calWrapp.find('.contBox3 .chekInDate').text(chkOutFnlDte.getDate());
+                calWrapp.find('.contBox3 .dayMonth span:first-child').text(ddss[chkOutFnlDte.getDay()]);
+                calWrapp.find('.contBox3 .dayMonth span:last-child').text(mmnnts[chkOutFnlDte.getMonth()]);
+
+
+  			if(restrictionArr!=undefined && restrictionArr.length>0 && restrictionArr[0].hasOwnProperty('dayRestriction') && restrictionArr[0].dayRestriction==true && checkIn!=undefined)
+              {
+                  $("#e4 .dp"+checkIn.getTime()).removeClass('planNotAvailable');
+              }
+
+         /*  ******************************  CHANGE    FOR  CR  ************************************   */
+
+              var mmnnts = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+              var showChkInCalDte = new Date(formData.checkindate);
+               var howChkOutCalDte = new Date(formData.checkoutdate);
+              /*showChkOutCalDte.setDate((showChkInCalDte.getDate()+1));*/
+
+              $('#mcheckout_cont').find('.resWhiInn .chkIn span:last-child').text(showChkInCalDte.getDate()+" "+mmnnts[showChkInCalDte.getMonth()]+" "+showChkInCalDte.getFullYear());
+              $('#mcheckout_cont').find('.resWhiInn .chkOut span:last-child').text(howChkOutCalDte.getDate()+" "+mmnnts[howChkOutCalDte.getMonth()]+" "+howChkOutCalDte.getFullYear());
+
+			  //$('#mcheckout_cont').find('.resWhiInn .chkOut span:last-child').text(showChkOutCalDte.getDate()+" "+mmnnts[showChkOutCalDte.getMonth()]+" "+showChkOutCalDte.getFullYear());
+              //$('#mcheckout_cont').find('.resWhiInn .chkOut span:last-child').text('Select Checkout');
+              $('#mcheckout_cont').find('.resWhiInn .chkOut').addClass('calAnimate');
+              if($('#mcheckout_cont .dateConfBtn').hasClass('nondis'))
+                  $('#mcheckout_cont .dateConfBtn').removeClass('nondis').addClass('dis');
+          },
+  		onDate: holidayDays
+  	});
+
+    	$("#e4").datepick({
+    		minDate: 0,
+    		rangeSelect: false,
+    		changeMonth: false,
+    		onDate: holidayDaysMobile,
+    		onSelect: function(dates) {
+    			//$("#mdetails").show();
+    			//$("#mcheckout_cont").hide();
+                if(chkForChkIn == false){
+                    var frmdtechkin = new Date(formData.checkindate);
+                        $("#e3").datepick('setDate',""+(frmdtechkin.getMonth()+1)+"/"+frmdtechkin.getDate()+"/"+frmdtechkin.getFullYear()+"");
+                    console.log(""+(frmdtechkin.getMonth()+1)+"/"+frmdtechkin.getDate()+"/"+frmdtechkin.getFullYear()+"");
+
+                   }
+
+                var tdDate = new Date();
+                if((dates[0].getDate() == tdDate.getDate())&&(dates[0].getMonth() == tdDate.getMonth())&&(dates[0].getFullYear() == tdDate.getFullYear())){
+
+                }
+                else{
+
+
+    			var month=(dates[0].getMonth()+1);
+
+                if(month!=undefined&&month<10)
+                {
+                    month='0'+month;
+                }
+
+                var day=dates[0].getDate();
+                if(day!=undefined && day<10)
+                {
+                    day='0'+day;
+                }
+                if(dates == undefined){
+
+                }
+    			$(".mstay-checkout .nd").html(dates[0].getDate() + " " + monthNames[dates[0].getMonth()] + " " + dates[0].getFullYear());
+    			formData.checkoutdate = dates[0].getFullYear()+"-"+month+"-"+day;
+
+    /***************************************************** RESERVATION WIDGET ENHANCEMENT STARTS  *******************************************************************/
+
+
+                var mStayContent = $("#mstayat_cont");
+                var calWrapp = mStayContent.find('.homeReserScreenCont .calenderWrapper');
+
+                var chkInEle = $('#mdetails .resWhiInn .reserInnWrp .rsrvDtailWp');
+
+                var ddss = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                var mmnnts = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+
+                var dd2 = new Date(formData.checkindate);
+                if(String(dd2.getDate()).length == 1)
+                calWrapp.find('.contBox1 .chekInDate').text("0"+dd2.getDate());
+                else
+                calWrapp.find('.contBox1 .chekInDate').text(dd2.getDate());
+                calWrapp.find('.contBox1 .dayMonth span:first-child').text(ddss[dd2.getDay()]);
+                calWrapp.find('.contBox1 .dayMonth span:last-child').text(mmnnts[dd2.getMonth()]);
+
+                var chkOutFnlDte = new Date(formData.checkoutdate);
+                var timeDiff = Math.abs(chkOutFnlDte.getTime() - dd2.getTime());
+                var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                calWrapp.find('.contBox2 .nights').text(diffDays);
+
+                var nightsNumber = parseInt(calWrapp.find('.contBox2 .nights').text());
+                if(nightsNumber>1){
+
+                    calWrapp.find('.contBox2 .nightsText').text('- Nights -');
+                }
+
+                if(String(chkOutFnlDte.getDate()).length == 1)
+                calWrapp.find('.contBox3 .chekInDate').text("0"+chkOutFnlDte.getDate());
+                else
+                calWrapp.find('.contBox3 .chekInDate').text(chkOutFnlDte.getDate());
+                calWrapp.find('.contBox3 .dayMonth span:first-child').text(ddss[chkOutFnlDte.getDay()]);
+                calWrapp.find('.contBox3 .dayMonth span:last-child').text(mmnnts[chkOutFnlDte.getMonth()]);
+
+
+                $(this).siblings('.resWhiInn').find('.chkOut span:last-child').text(chkOutFnlDte.getDate()+" "+mmnnts[chkOutFnlDte.getMonth()]+" "+chkOutFnlDte.getFullYear())
+
+                $('#mcheckout_cont .dateConfBtn').removeClass('dis').addClass('nondis');
+                $('.dateConfBtn').click(function(){
+                    //if($(this).hasClass('nondis')){
+                    $(this).parent().hide(100);
+                    mStayContent.show(300);
+                    $('#goBckBtn').css('visibility','hidden');
+                    $('#mcheckout_cont').find('.resWhiInn .chkOut').removeClass('calAnimate');
+                       /* if($('#calGoBckBtn').css('display','inline-block')){
+                            $('#calGoBckBtn').css('display','none');
+                            $('#goBckBtn').css('display','inline-block');
+                        }*/
+                    //}
+                });
+
+                if($('#calGoBckBtn').css('display','inline-block')){
+                            $('#calGoBckBtn').css('display','none');
+                            $('#goBckBtn').css('display','inline-block');
+                   }
+
+    /***************************************************** RESERVATION WIDGET ENHANCEMENT ENDS  **********************************************************/
+    		}
+       }
+    	});
+
+		$('#mcheckin_cont .resWhiInn div.chkOut').click(function(e){
+    	   console.log('clicked on checkout');
+    	   $('#mcheckin_cont').hide();
+           var latChkOut = new Date(formData.checkoutdate);
+            var mmnnt = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    	   $('#mcheckout_cont .resWhiInn div.chkOut span:last-child').text(latChkOut.getDate()+" "+mmnnt[latChkOut.getMonth()]+" "+latChkOut.getFullYear());
+    	   $('#mcheckout_cont').show();
+
+    	});
+
+       $('#mcheckout_cont .resWhiInn div.chkIn').click(function(e){
+            	   console.log('clicked on checkout checkin');
+            	   $('#mcheckout_cont').hide();
+            	   var latChkIn = new Date(formData.checkindate);
+            	   var latChkOut = new Date(formData.checkoutdate);
+            	   var mmnnt = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+            	   $('#mcheckin_cont .resWhiInn div.chkIn span:last-child').text(latChkIn.getDate()+" "+mmnnt[latChkIn.getMonth()]+" "+latChkIn.getFullYear());
+            	   $('#mcheckin_cont .resWhiInn div.chkOut span:last-child').text(latChkOut.getDate()+" "+mmnnt[latChkOut.getMonth()]+" "+latChkOut.getFullYear());
+            	   $('#mcheckin_cont').show();
+         });
+
+
+    }
+    });

@@ -1,0 +1,790 @@
+package com.itc.servlet.reservation;
+
+import com.day.cq.commons.RangeIterator;
+import com.day.cq.search.PredicateGroup;
+import com.day.cq.search.Query;
+import com.day.cq.search.QueryBuilder;
+import com.day.cq.search.result.Hit;
+import com.day.cq.search.result.SearchResult;
+import com.day.cq.tagging.Tag;
+import com.day.cq.tagging.TagManager;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.itc.commons.CQJCRConstants;
+import com.itc.commons.commonconfigurations.CommonOSGIService;
+import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.*;
+import org.apache.jackrabbit.oak.commons.PropertiesUtil;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.commons.json.JSONArray;
+import org.apache.sling.commons.json.JSONObject;
+import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.jcr.Session;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by ICF on 16/05/16.
+ */
+@Component(immediate = true)
+@Service
+public class GuavaCacheUtilityImpl implements GuavaCacheUtility {
+    @Reference
+    private ReservationHotelSelection reservationHotelSelection;
+
+    private static final Logger LOG = LoggerFactory.getLogger(GuavaCacheUtilityImpl.class);
+    private static Map<String,List> locationNames=null;
+    private static Map<String,List> hotelNames=null;
+    private static Map<String,List> airportNames=null;
+    private static Set hotelNamePropertySet=null;
+    private static Set airportPropertySet=null;
+    private static Set<String> locationpropertySet=null;
+    private static Map<String,Set> finalMap=null;
+    private static final String SPLIT_WORD = "<->";
+    private static final String SPLIT_PROPERTY = "<->";
+    private static String hotelIdentifier = null;
+
+
+    private static final String SERVER_PATH = "serverpath";
+
+    private static final String SECTORS = "sectors";
+    public static final String EXIRES_HEADER = "Expires";
+    private static final int DEFAULT_FAILURE_MAX_AGE_SECONDS = 60;
+    private static final int DEFAULT_SUCCESS_MAX_AGE_SECONDS = 300;
+
+    private static transient Cache<String, List<Map>> bestFaresCache;
+
+
+    @Property(label = "Maximum Cache Size", description = "Maximum number of records that can be cached")
+    public static final String CACHE_MAX_SIZE = "cacheMaxSize";
+
+    private int cacheMaxSize;
+
+    @Property(label = "Cache Expiry Time (In minutes)", description = "Number of minutes after which the cache will expire")
+    public static final String CACHE_EXPIRY_TIME = "cacheExpiry";
+
+    @Property(
+            label = "Failure max age header duration",
+            description = "Enter the number of seconds the value must be cached in case of failure",
+            intValue = 60
+    )
+    public static final String FAILURE_MAX_AGE_HAEADER = "failureMaxAgeDuration";
+    private int failureMaxAgeDuration;
+
+    @Property(
+            label = "Success max age header duration",
+            description = "Enter the number of seconds the value must be cached in case of success",
+            intValue = 300
+    )
+    public static final String SUCCESS_MAX_AGE_HAEADER = "successMaxAgeDuration";
+    private int successMaxAgeDuration;
+
+
+    private int cacheExpiry;
+
+    @Activate
+    public final void activate (final ComponentContext componentContext) {
+        Dictionary configurations = componentContext.getProperties();
+        this.cacheMaxSize = PropertiesUtil.toInteger(configurations.get(CACHE_MAX_SIZE), 5000);
+        this.cacheExpiry = PropertiesUtil.toInteger(configurations.get(CACHE_EXPIRY_TIME), 30);
+        bestFaresCache = CacheBuilder.newBuilder()
+                .maximumSize(cacheMaxSize) // maximum records can be cached
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES) // cache will expire after this time
+                .build();
+        failureMaxAgeDuration = org.apache.sling.commons.osgi.PropertiesUtil
+                .toInteger(configurations.get(FAILURE_MAX_AGE_HAEADER), DEFAULT_FAILURE_MAX_AGE_SECONDS);
+        successMaxAgeDuration = org.apache.sling.commons.osgi.PropertiesUtil
+                .toInteger(configurations.get(SUCCESS_MAX_AGE_HAEADER),
+                        DEFAULT_SUCCESS_MAX_AGE_SECONDS);
+    }
+
+
+
+    @Override
+    public List<Map> getCachedValue(final SlingHttpServletRequest request)
+    {
+
+        List<Map> allShadesFromCache = new ArrayList<>();
+        try {
+            allShadesFromCache =bestFaresCache.get(SECTORS,
+                    new Callable<List<Map>>() {
+                        @Override
+                        public List<Map> call() throws Exception {
+                            return getHotelDetails(request);
+                        }
+                    });
+
+            if(allShadesFromCache!=null) {
+                return allShadesFromCache;
+            }
+
+        } catch (ExecutionException e) {
+
+            LOG.error("ExecutionException while trying to cache hotel dropdown list", e);
+        }
+        return null;
+    }
+
+
+
+
+    public  List<Map> getHotelDetails(SlingHttpServletRequest request)
+    {
+        locationNames=new TreeMap<String,List>();
+        hotelNames=new TreeMap<String,List>();
+        airportNames=new TreeMap<String,List>();
+        List <Map> propertyList=new ArrayList<Map>();
+        String cityName;
+        String hotelLong ;
+        String thresholdDistance;
+        String hotelLat ;
+        String hotelName;
+        String airportNameArr[];
+        StringBuilder Builder=new StringBuilder();
+        List<Map> hotelDetailsList =new ArrayList<Map>();
+        List resultList=null;
+        String chaincode;
+        String hotelcode;
+        String hotelId;
+        String locationId;
+        List<Map> finalList=null;
+        Iterator iterator=null;
+        Map onlineMap = null;
+        Map offlineMap = null;
+        String airportName;
+        JSONArray locationArr=null;
+        JSONArray airportArr=null;
+        JSONArray hotelArr=null;
+        JSONArray filtered_HotelArr = new JSONArray();
+        List destinationNameList = new ArrayList();
+
+
+        String locationsParentPath=null;
+        //String hotelLocations=request.getParameter("locationsPath")==null?StringUtils.EMPTY:request.getParameter("locationsPath");
+        //String hotelLocationsArr[]=hotelLocations.split(SPLIT_WORD);
+        String onlineHotelIdentifier[] =new String[1];
+        String offlineHotelIdentifier[] = new String[1];
+        String reservationWidgetIdentifier[] = new String[1];
+        CommonOSGIService osgiService=CommonOSGIService.getCommonOSGIService();
+        if(osgiService!=null) {
+            locationsParentPath=osgiService.getOnlineHotelsPath();
+            onlineHotelIdentifier[0]=osgiService.getOperaHotelPageIdentifier();
+            offlineHotelIdentifier[0]=osgiService.getNonOperaHotelPageIdentifier();
+            reservationWidgetIdentifier[0] = osgiService.reservationWidgetIdentifier();
+        }
+
+        try
+        {
+            TagManager tagManager = request.getResourceResolver().adaptTo(TagManager.class);
+            LOG.info("Starting to populate resevation widget using tag manager");
+            //onlinehotel properties
+            if (locationsParentPath!=null&&locationsParentPath.length() > 0 && onlineHotelIdentifier[0]!=null && onlineHotelIdentifier[0].length()>0) {
+                //RangeIterator<Resource> hotelIterator = tagManager.find(locationsParentPath, onlineHotelIdentifier);
+                //RangeIterator<Resource> hotelIterator = tagManager.find(locationsParentPath,)
+                ArrayList onlineReserWidget = new ArrayList();
+                onlineReserWidget.add(reservationWidgetIdentifier);
+                onlineReserWidget.add(onlineHotelIdentifier);
+                RangeIterator<Resource> hotelIterator = tagManager.find(locationsParentPath,onlineHotelIdentifier);
+                RangeIterator<Resource> hotelIterartor_reser = tagManager.find(locationsParentPath,onlineReserWidget);
+
+                //Map hotelNameJsonMap = new HashMap();
+                if(hotelIterator!=null)
+                {
+                    while (hotelIterator.hasNext()) {
+                        Resource hotelPageResource = hotelIterator.next();
+                        if (hotelPageResource != null) {
+/*--------------------------------Reservation Widget Enhancement start--------------------------*/
+                            //ValueMap valueMap = hotelPageResource.getValueMap();
+                            //String hotelPath = hotelPageResource.getParent().getPath();
+                            // Resource hotelPathResource = request.getResourceResolver().getResource(hotelPath);
+                            Map hotelNameJsonMap = new HashMap();
+                            Map hotelNameJsonMap_Airport = new HashMap();
+                            // Map <String, List<String>> hotelNameJsonMap1 = new HashMap<String, List<String>>();
+                            String destinationPath = hotelPageResource.getParent().getParent().getPath();
+                            Resource destinationPathResource = request.getResourceResolver().getResource(destinationPath);
+                            Resource jcrResource = destinationPathResource.getChild(CQJCRConstants.JCRCONTENT);
+                            ValueMap destinationValue = jcrResource.getValueMap();
+                            String destinationName = (String) destinationValue.get("jcr:title");
+                            if(jcrResource.hasChildren()){
+                                Resource childResource = jcrResource.getChild("recommendedHotelsPath");
+                                if(childResource!=null){
+
+                                    if(destinationNameList.contains(destinationName))
+                                    {
+
+                                    }
+
+                                    else {
+                                        destinationNameList.add(destinationName);
+                                        Iterator<Resource> childIterator = childResource.listChildren();
+                                        if (childIterator != null) {
+                                            List recommendedHotelsList = new ArrayList<>();
+                                            while (childIterator.hasNext()) {
+                                                Resource itemsResource = childIterator.next();
+                                                if (itemsResource != null) {
+                                                    ValueMap childValueMap = itemsResource.getValueMap();
+                                                    //int childValueMapLength = childValueMap.size();
+                                                    // for(int i=0; i<=childValueMapLength-1; i++){
+                                                    String recommendedHotelsPath = ((String) (childValueMap.get("recommendedHotels") != null ? childValueMap.get("recommendedHotels") : StringUtils.EMPTY));
+                                                    recommendedHotelsList.add(recommendedHotelsPath);
+                                                    //}
+
+                                                }
+                                            }
+                                            hotelNameJsonMap.put("recommendedHotelsPath", recommendedHotelsList);
+                                        }
+                                    }
+                                }
+
+                            }
+                            ValueMap valueMap = hotelPageResource.getValueMap();
+                            String hotelPath = hotelPageResource.getParent().getPath();
+                            if (valueMap != null) {
+
+                                finalMap = new HashMap<String, Set>();
+                                hotelNamePropertySet = new HashSet<>();
+                                chaincode = ((String) (valueMap.get("chainCode") != null ? valueMap.get("chainCode") : StringUtils.EMPTY));
+                                hotelcode = ((String) (valueMap.get("hotelCode") != null ? valueMap.get("hotelCode") : StringUtils.EMPTY));
+                                hotelName = (String) (valueMap.get("jcr:title") != null ? valueMap.get("jcr:title") : StringUtils.EMPTY);
+                                cityName = (String) (valueMap.get("hotelsCity") != null ? valueMap.get("hotelsCity") : StringUtils.EMPTY);
+
+                                if(cityName.length()>0){
+                                    hotelName=hotelName+", "+cityName;
+                                }
+                                //hotelNamePropertySet.add(chaincode + SPLIT_PROPERTY+ hotelcode+SPLIT_PROPERTY +hotelResource.getPath());
+                                //Map hotelNameJsonMap = new HashMap();
+                                hotelNameJsonMap.put("chainCode", chaincode);
+                                hotelNameJsonMap.put("hotelCode", hotelcode);
+                                hotelNameJsonMap.put("hotelPagePath", hotelPath);
+
+                                hotelNameJsonMap_Airport.put("chainCode", chaincode);
+                                hotelNameJsonMap_Airport.put("hotelCode", hotelcode);
+                                hotelNameJsonMap_Airport.put("hotelPagePath", hotelPath);
+
+
+                                /** if (hotelName.length() > 0) {
+                                 hotelNamePropertySet = new HashSet();
+                                 hotelNamePropertySet.add(hotelNameJsonMap);
+                                 finalMap = new HashMap<String, Set>();
+                                 finalMap.put("online", hotelNamePropertySet);
+                                 propertyList = new ArrayList<Map>();
+                                 propertyList.add(finalMap);
+                                 //resultList = hotelNames.put(hotelName, propertyList);
+
+                                 if (resultList != null) {
+                                 Map tempMap = (Map) resultList.get(0);
+                                 Set tempSet = (Set) tempMap.get("online");
+                                 hotelNamePropertySet.addAll(tempSet);
+                                 finalMap = new HashMap<String, Set>();
+                                 finalMap.put("online", hotelNamePropertySet);
+                                 propertyList = new ArrayList<Map>();
+                                 propertyList.add(finalMap);
+                                 hotelNames.put(hotelName, propertyList);
+                                 }
+                                 }**/
+
+                                airportNameArr = (String[]) (valueMap.get("airportName") != null ? valueMap.get("airportName") : new String[0]);
+
+                                cityName = (String) (valueMap.get("hotelsCity") != null ? valueMap.get("hotelsCity") : StringUtils.EMPTY);
+
+                                if (cityName.length() > 0) {
+                                    hotelNamePropertySet = new HashSet();
+                                    hotelNamePropertySet.add(hotelNameJsonMap);
+                                    finalMap = new HashMap<String, Set>();
+                                    finalMap.put("online", hotelNamePropertySet);
+                                    propertyList = new ArrayList<Map>();
+                                    propertyList.add(finalMap);
+                                    resultList = locationNames.put(cityName, propertyList);
+
+                                    if (resultList != null) {
+                                        Map tempMap = (Map) resultList.get(0);
+                                        Set tempSet = (Set) tempMap.get("online");
+                                        hotelNamePropertySet.addAll(tempSet);
+                                        finalMap = new HashMap<String, Set>();
+                                        finalMap.put("online", hotelNamePropertySet);
+                                        propertyList = new ArrayList<Map>();
+                                        propertyList.add(finalMap);
+                                        locationNames.put(cityName, propertyList);
+                                    }
+                                }
+
+                                //TagManager tagManager = request.getResourceResolver().adaptTo(TagManager.class);
+                                List<String> categoryList = new ArrayList<String>();
+
+                                for (String path : airportNameArr) {
+                                    if (tagManager != null) {
+                                        Tag tag = tagManager.resolve(path);
+
+                                        if (tag != null) {
+                                            airportName = tag.getTitle() != null ? tag.getTitle() : StringUtils.EMPTY;
+                                            if (airportName.length() > 0) {
+                                                hotelNamePropertySet = new HashSet();
+                                                hotelNamePropertySet.add(hotelNameJsonMap_Airport);
+                                                finalMap = new HashMap<String, Set>();
+                                                finalMap.put("online", hotelNamePropertySet);
+                                                propertyList = new ArrayList<Map>();
+                                                propertyList.add(finalMap);
+                                                resultList = airportNames.put(airportName, propertyList);
+
+                                                if (resultList != null) {
+                                                    Map tempMap = (Map) resultList.get(0);
+                                                    Set tempSet = (Set) tempMap.get("online");
+                                                    hotelNamePropertySet.addAll(tempSet);
+                                                    finalMap = new HashMap<String, Set>();
+                                                    finalMap.put("online", hotelNamePropertySet);
+                                                    propertyList = new ArrayList<Map>();
+                                                    propertyList.add(finalMap);
+                                                    airportNames.put(airportName, propertyList);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(hotelIterartor_reser!=null)
+                {
+                    while (hotelIterartor_reser.hasNext()) {
+                        Resource hotelPageResource = hotelIterartor_reser.next();
+                        if (hotelPageResource != null){
+                            Map hotelNameJsonMap_reser = new HashMap();
+                            ValueMap valueMap = hotelPageResource.getValueMap();
+
+                            String hotelPath = hotelPageResource.getParent().getPath();
+                            if (valueMap != null) {
+
+                                finalMap = new HashMap<String, Set>();
+                                hotelNamePropertySet = new HashSet<>();
+                                chaincode = ((String) (valueMap.get("chainCode") != null ? valueMap.get("chainCode") : StringUtils.EMPTY));
+                                hotelcode = ((String) (valueMap.get("hotelCode") != null ? valueMap.get("hotelCode") : StringUtils.EMPTY));
+                                hotelName = (String) (valueMap.get("jcr:title") != null ? valueMap.get("jcr:title") : StringUtils.EMPTY);
+                                cityName = (String) (valueMap.get("hotelsCity") != null ? valueMap.get("hotelsCity") : StringUtils.EMPTY);
+                                hotelLong=(String) (valueMap.get("hotelLongitude") != null ? valueMap.get("hotelLongitude") : StringUtils.EMPTY);
+                                hotelLat=(String) (valueMap.get("hotelLatitude") != null ? valueMap.get("hotelLatitude") : StringUtils.EMPTY);
+                                thresholdDistance=(String) (valueMap.get("thresholdDistance") != null ? valueMap.get("thresholdDistance") : StringUtils.EMPTY);
+                                if(cityName.length()>0){
+                                    hotelName=hotelName+", "+cityName;
+                                }
+                                //hotelNamePropertySet.add(chaincode + SPLIT_PROPERTY+ hotelcode+SPLIT_PROPERTY +hotelResource.getPath());
+                                //Map hotelNameJsonMap = new HashMap();
+                                hotelNameJsonMap_reser.put("chainCode", chaincode);
+                                hotelNameJsonMap_reser.put("hotelCode", hotelcode);
+                                hotelNameJsonMap_reser.put("hotelPagePath", hotelPath);
+                                hotelNameJsonMap_reser.put("hotelLongitude", hotelLong);
+                                hotelNameJsonMap_reser.put("hotelLatitude", hotelLat);
+                                hotelNameJsonMap_reser.put("thresholdDistance", thresholdDistance);
+
+                                if (hotelName.length() > 0) {
+                                    hotelNamePropertySet = new HashSet();
+                                    hotelNamePropertySet.add(hotelNameJsonMap_reser);
+                                    finalMap = new HashMap<String, Set>();
+                                    finalMap.put("online", hotelNamePropertySet);
+                                    propertyList = new ArrayList<Map>();
+                                    propertyList.add(finalMap);
+                                    resultList = hotelNames.put(hotelName, propertyList);
+
+                                    if (resultList != null) {
+                                        Map tempMap = (Map) resultList.get(0);
+                                        Set tempSet = (Set) tempMap.get("online");
+                                        hotelNamePropertySet.addAll(tempSet);
+                                        finalMap = new HashMap<String, Set>();
+                                        finalMap.put("online", hotelNamePropertySet);
+                                        propertyList = new ArrayList<Map>();
+                                        propertyList.add(finalMap);
+                                        hotelNames.put(hotelName, propertyList);
+                                    }
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            Resource hotelPageResource;
+            JSONObject jsonObj=reservationHotelSelection.getAllDestinationNames();
+            if(jsonObj!=null) {
+                if(jsonObj.has("location"))
+                {
+                    locationArr = (JSONArray) jsonObj.get("location");
+                }
+
+                if(jsonObj.has("Airport"))
+                {
+                    airportArr = (JSONArray) jsonObj.get("Airport");
+                }
+
+                if(jsonObj.has("Hotels")) {
+                    hotelArr = (JSONArray) jsonObj.get("Hotels");
+                }
+
+                ArrayList<String> offlineReserHotels_Arr = new ArrayList<String>();
+                JSONObject offlineHotelsDetailsJSON=new JSONObject();
+                RangeIterator<Resource> hotelIterator=null;
+                if(offlineHotelIdentifier[0]!=null && offlineHotelIdentifier[0].length()>0) {
+                    // hotelIterator = tagManager.find(locationsParentPath, offlineHotelIdentifier);
+                    ArrayList offlineReserWidget = new ArrayList();
+                    offlineReserWidget.add(offlineHotelIdentifier);
+                    offlineReserWidget.add(reservationWidgetIdentifier);
+                    hotelIterator = tagManager.find(locationsParentPath,offlineReserWidget);
+                }
+
+                if(hotelIterator!=null)
+                {
+                    while (hotelIterator.hasNext()) {
+                        hotelPageResource = hotelIterator.next();
+                        if (hotelPageResource != null)
+                        {
+                            ValueMap valueMap = hotelPageResource.getValueMap();
+                            if(valueMap!=null)
+                            {
+                                hotelIdentifier=valueMap.get("offlineHotelId",StringUtils.EMPTY);
+                                if(hotelIdentifier.length()>0) {
+                                    offlineHotelsDetailsJSON.put(hotelIdentifier,hotelPageResource.getParent().getPath());
+                                    offlineReserHotels_Arr.add(hotelIdentifier);
+                                }
+
+                            }
+
+                        }
+                    }
+                }
+
+                for (int i = 0; i < hotelArr.length(); ++i) {
+                    if (hotelArr != null) {
+                        JSONObject jsn = hotelArr.getJSONObject(i);
+
+                        String keyVal = jsn.getString("hotelId");
+                        String keyVal_name = jsn.getString("hotelName");
+
+                        if (offlineReserHotels_Arr.contains(keyVal)) {
+                            JSONObject jsnObj = new JSONObject();
+                            jsnObj.accumulate("hotelId", keyVal);
+                            jsnObj.accumulate("hotelName", keyVal_name);
+                            filtered_HotelArr.put(jsnObj);
+                            //offlineHotelsDetailsJSON.put(keyVal,hotelPageResource.getParent().getPath());
+
+                        }
+                    }
+                }
+
+
+
+                if (filtered_HotelArr != null && locationsParentPath!=null) {
+
+                    for (int index = 0; index < filtered_HotelArr.length(); index++) {
+                        JSONObject jsonObject = (JSONObject) filtered_HotelArr.get(index);
+                        if (jsonObject != null) {
+                            hotelName = jsonObject.get("hotelName") != null ? jsonObject.get("hotelName").toString() : StringUtils.EMPTY;
+                            hotelId = jsonObject.get("hotelId") != null ? jsonObject.get("hotelId").toString() : StringUtils.EMPTY;
+                            String hotelPath="";
+                            //if(hotelId.equals(hotelIdentifier)){
+                                    /*if(hotelId.length()>0)
+                            {
+                                Session session = request.getResourceResolver().adaptTo(Session.class);
+                                QueryBuilder queryBuilder = request.getResourceResolver().adaptTo(QueryBuilder.class);
+                                final Map<String, String> map = new HashMap<String, String>();
+                                map.put("path", locationsParentPath);
+                                map.put("type", "cq:PageContent");
+                                //map.put("orderby", szOrderBy);
+                                //map.put("orderby.sort", "desc");
+                                map.put("property", "offlineHotelId"); // combine this group with
+                                // OR
+                                map.put("property.value", hotelId);
+                                final Query query = queryBuilder.createQuery(PredicateGroup.create(map), session);
+                                query.setStart(0);
+                                query.setHitsPerPage(10000);
+                                final SearchResult result = query.getResult();
+                                LOG.info("compare->inside offline"+result.getQueryStatement());
+                                //LOG.info("compare->inside offline"+((QueryImpl) query).getStatement());
+                                //LOG.info("compare->inside offline"+query.getS);
+                                // iterating over the results
+                                if (result != null) {
+
+                                    for (Hit hit : result.getHits()) {
+                                        //LOG.info("compare->inside query builder" + key);
+                                        hotelPath = hit.getPath();
+                                    }
+                                }
+                            }*/
+
+
+
+                            hotelNamePropertySet = new HashSet<String>();
+                            Map hotelPropertyMap=new HashMap();
+                            if(offlineHotelsDetailsJSON.has(hotelId))
+                            {
+                                hotelPropertyMap.put("hotelId",hotelId);
+                                String offlineHotelsPath=offlineHotelsDetailsJSON.getString(hotelId);
+                                String offlineHotelLong=null;
+                                String offlineHotelLat=null;
+                                String offlineThresholdDistance=null;
+                                if(!StringUtils.isEmpty(offlineHotelsPath) && !offlineHotelsPath.equals("undefined")) {
+
+                                    Resource hotelResource = request.getResourceResolver().getResource(offlineHotelsPath);
+                                    ValueMap hotelPageValueMap = null;
+
+                                    if (hotelResource != null && hotelResource.hasChildren()) {
+                                        Resource childResource = hotelResource.getChild(CQJCRConstants.JCRCONTENT);
+
+                                        if (childResource != null) {
+                                            hotelPageValueMap = childResource.getValueMap();
+                                        }
+                                    }
+
+                                    if (hotelPageValueMap != null) {
+                                        String locationName=hotelPageValueMap.get("hotelsCity",StringUtils.EMPTY);
+                                        offlineHotelLong=hotelPageValueMap.get("hotelLatitude",StringUtils.EMPTY);
+                                        offlineHotelLat=hotelPageValueMap.get("hotelLongitude",StringUtils.EMPTY);
+                                        offlineThresholdDistance=hotelPageValueMap.get("thresholdDistance",StringUtils.EMPTY);
+                                        if(locationName.length()>0){
+                                            hotelName=hotelName+", "+locationName;
+                                        }
+                                    }
+
+                                }
+
+                                hotelPropertyMap.put("hotelPagePath",offlineHotelsPath);
+                                hotelPropertyMap.put("hotelLatitude",offlineHotelLong);
+                                hotelPropertyMap.put("hotelLongitude",offlineHotelLat);
+                                hotelPropertyMap.put("thresholdDistance",offlineThresholdDistance);
+                                hotelNamePropertySet.add(hotelPropertyMap);
+                            }
+                            else {
+                                hotelPropertyMap.put("hotelId",hotelId);
+                                hotelNamePropertySet.add(hotelPropertyMap);
+                            }
+                            finalMap = new HashMap<String, Set>();
+                            finalMap.put("offline", hotelNamePropertySet);
+                            propertyList = new ArrayList<Map>();
+                            propertyList.add(finalMap);
+
+                            if (hotelName.length() > 0) {
+                                resultList = hotelNames.put(hotelName, propertyList);
+
+                                if (resultList != null) {
+                                    if (resultList.size() > 1) {
+                                        onlineMap = (Map) resultList.get(0);
+                                        offlineMap = (Map) resultList.get(1);
+                                        finalMap = new HashMap<String, Set>();
+
+                                        if (offlineMap != null) {
+                                            Set offlineSet = (Set) offlineMap.get("offline");
+
+                                            if (offlineSet != null) {
+                                                hotelNamePropertySet.addAll(offlineSet);
+
+                                            }
+                                        }
+                                        finalMap.put("offline", hotelNamePropertySet);
+
+                                        if (onlineMap != null) {
+                                            Set onlineSet = (Set) onlineMap.get("online");
+                                            propertyList = new ArrayList<Map>();
+
+                                            if (onlineSet != null) {
+                                                finalMap.put("online", onlineSet);
+                                            }
+
+                                            propertyList.add(finalMap);
+                                            hotelNames.put(hotelName, propertyList);
+                                        }
+                                    } else {
+                                        offlineMap = (Map) resultList.get(0);
+
+                                        if (offlineMap != null) {
+                                            Set offlineSet = (Set) offlineMap.get("offline");
+                                            Set onlineSet = (Set) offlineMap.get("online");
+                                            finalMap = new HashMap<String, Set>();
+
+                                            if (offlineMap != null) {
+                                                if (offlineSet != null) {
+                                                    hotelNamePropertySet.addAll(offlineSet);
+
+                                                }
+                                            }
+                                            finalMap.put("offline", hotelNamePropertySet);
+                                            propertyList = new ArrayList<Map>();
+
+                                            if (onlineSet != null) {
+                                                finalMap.put("online", onlineSet);
+                                            }
+
+                                            propertyList.add(finalMap);
+                                            hotelNames.put(hotelName, propertyList);
+                                        }
+                                    }
+                                }
+                            }
+                            //  }
+                        }
+
+
+                    }
+                    //}
+
+                }
+
+                if(locationArr!=null) {
+                    for (int i = 0; i < locationArr.length(); i++) {
+                        JSONObject jsonObject = (JSONObject) locationArr.get(i);
+
+                        if (jsonObject != null) {
+                            cityName = jsonObject.get("locationName") != null ? jsonObject.get("locationName").toString() : StringUtils.EMPTY;
+                            locationId = jsonObject.get("locationId") != null ? jsonObject.get("locationId").toString() : StringUtils.EMPTY;
+                            locationpropertySet = new HashSet<String>();
+                            locationpropertySet.add(locationId);
+                            finalMap = new HashMap<String, Set>();
+                            finalList = new ArrayList<Map>();
+                            finalMap.put("offline", locationpropertySet);
+                            finalList.add(finalMap);
+
+                            if (cityName.length() > 0) {
+                                resultList = locationNames.put(cityName, finalList);
+                                if (resultList != null) {
+
+                                    if (resultList.size() > 1) {
+                                        onlineMap = (Map) resultList.get(0);
+                                        offlineMap = (Map) resultList.get(1);
+                                        finalMap = new HashMap<String, Set>();
+
+                                        if (offlineMap != null) {
+                                            Set offlineSet = (Set) offlineMap.get("offline");
+                                            locationpropertySet.addAll(offlineSet);
+
+                                        }
+                                        finalMap.put("offline", locationpropertySet);
+                                        if (onlineMap != null) {
+                                            Set onlineSet = (Set) onlineMap.get("online");
+                                            propertyList = new ArrayList<Map>();
+                                            finalMap.put("online", onlineSet);
+                                        }
+
+                                        propertyList.add(finalMap);
+                                        locationNames.put(cityName, propertyList);
+                                    } else {
+                                        offlineMap = (Map) resultList.get(0);
+                                        finalMap = new HashMap<String, Set>();
+
+                                        if (offlineMap != null) {
+                                            Set offlineSet = (Set) offlineMap.get("offline");
+
+                                            if (offlineSet != null) {
+                                                locationpropertySet.addAll(offlineSet);
+
+                                            }
+
+
+                                            Set onlineSet = (Set) offlineMap.get("online");
+                                            propertyList = new ArrayList<Map>();
+
+                                            if (onlineSet != null) {
+                                                finalMap.put("online", onlineSet);
+                                            }
+                                        }
+                                        finalMap.put("offline", locationpropertySet);
+                                        propertyList.add(finalMap);
+                                        locationNames.put(cityName, propertyList);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(airportArr!=null) {
+                    for (int i = 0; i < airportArr.length(); i++) {
+                        JSONObject jsonObject = (JSONObject) airportArr.get(i);
+                        airportName = jsonObject.get("AirportName") != null ? jsonObject.get("AirportName").toString() : StringUtils.EMPTY;
+                        locationId = jsonObject.get("locationId") != null ? jsonObject.get("locationId").toString() : StringUtils.EMPTY;
+                        airportPropertySet = new HashSet<>();
+
+
+                        airportPropertySet.add(locationId);
+                        finalMap = new HashMap<String, Set>();
+                        finalList = new ArrayList<Map>();
+                        finalMap.put("offline", airportPropertySet);
+                        finalList.add(finalMap);
+
+                        if (airportName.length() > 0) {
+                            resultList = airportNames.put(airportName, finalList);
+
+                            if (resultList != null) {
+                                if (resultList.size() > 1) {
+                                    onlineMap = (Map) resultList.get(0);
+
+                                    finalMap = new HashMap<String, Set>();
+
+
+                                    if (onlineMap != null) {
+                                        Set onlineSet = (Set) onlineMap.get("online");
+                                        propertyList = new ArrayList<Map>();
+
+                                        if (onlineSet != null) {
+                                            finalMap.put("online", onlineSet);
+                                        }
+                                    }
+
+                                    propertyList.add(finalMap);
+                                    airportNames.put(airportName, propertyList);
+
+                                } else {
+                                    offlineMap = (Map) resultList.get(0);
+                                    finalMap = new HashMap<String, Set>();
+
+                                    if (offlineMap != null) {
+                                        Set offlineSet = (Set) offlineMap.get("offline");
+
+                                        if (offlineSet != null) {
+                                            airportPropertySet.addAll(offlineSet);
+
+                                        }
+                                        finalMap.put("offline", airportPropertySet);
+
+                                        Set onlineSet = (Set) offlineMap.get("online");
+                                        propertyList = new ArrayList<Map>();
+
+                                        if (onlineSet != null) {
+                                            finalMap.put("online", onlineSet);
+                                        }
+                                        propertyList.add(finalMap);
+                                        airportNames.put(airportName, propertyList);
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // }
+
+            hotelDetailsList.add(locationNames);
+            hotelDetailsList.add(hotelNames);
+            hotelDetailsList.add(airportNames);
+            LOG.info("after populateting resevation widget using tag manager. Value:"+hotelDetailsList.toString());
+            return hotelDetailsList;
+        }
+        catch(Exception exception)
+        {
+            LOG.info("Exception Occured",exception.getMessage(),exception);
+        }
+        return null;
+    }
+
+
+}
+

@@ -1,0 +1,123 @@
+    function getCoords(){
+
+        	$('#stayat_txt').val('');
+
+			if(navigator.geolocation)
+            {
+
+				  navigator.geolocation.getCurrentPosition(getLatLong,noLocation);
+
+            }
+
+
+    }
+     function getLatLong(pos)
+    {
+
+		lat1=pos.coords.latitude;
+        long1=pos.coords.longitude;
+		findNearHotels();
+
+    }
+
+    function noLocation(){
+		console.log("not able to find location");
+    }
+
+  function findNearHotels(){
+			var nearHotel=[];
+            var pArray=[];
+      $.each($('.reserDrpUl.dynamicDropdownAppend li'),function(index,item){
+
+
+
+			if($(item).find('a').attr("category")=="Hotels")
+            {
+
+					var long2=$(item).data('long');
+                	var lat2=$(item).data('lat');
+                //console.log(long2);
+                var threshold=parseFloat($(item).data('threshold')?$(item).data('threshold'):0);
+
+					// google api toget the distance and compare  it with the threshold
+
+              pArray.push(new Promise(function (resolve,reject){
+            new google.maps.DistanceMatrixService().getDistanceMatrix({
+                origins: [new google.maps.LatLng(lat1, long1)],
+                destinations: [new google.maps.LatLng(lat2,long2)],
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+                avoidHighways: false,
+                avoidTolls: false
+            }, function (response, status) {
+                if (status == google.maps.DistanceMatrixStatus.OK && response.rows[0].elements[0].status != "ZERO_RESULTS") {
+                    var distance = response.rows[0].elements[0].distance.text;
+
+
+						if(distance.split(" ")[0]<=threshold)
+                        {
+
+							resolve(item);
+                        }
+						else
+                        {
+							resolve(" ");
+                        }
+
+
+
+                }
+
+            });
+
+                }));
+
+
+
+
+
+
+            };
+
+
+
+
+        });
+      Promise.all(pArray).then(function(value){
+
+
+
+          $.each(value,function(index,item){
+
+			if(item!= " ")
+            {
+				 nearHotel.push(item);
+            }
+
+
+
+          });
+		console.log(nearHotel.length);
+         appendNearHotelList(nearHotel);
+
+      });
+
+    }
+
+function appendNearHotelList(nearList)
+    {
+
+        $('.reserDrpUl.dynamicDropdownAppend').empty();
+
+        $.each(nearList,function(index,item){
+
+            $(item).css('display','block');
+
+		$('.reserDrpUl.dynamicDropdownAppend').append(item);
+
+
+
+        });
+        console.log($('.reserDrpUl.dynamicDropdownAppend').find('li').length);
+
+    }

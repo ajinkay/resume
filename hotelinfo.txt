@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+          jcr:primaryType="cq:Panel"
+          path="/apps/itchotelsonline/components/page/itchotelpage/tab_hotelinfo.infinity.json"
+          title="Hotel Info">
+    <items jcr:primaryType="cq:WidgetCollection">
+        <basic
+                jcr:primaryType="cq:Widget"
+                collapsed="{Boolean}false"
+                collapsible="{Boolean}false"
+                xtype="dialogfieldset">
+            <items jcr:primaryType="cq:WidgetCollection">
+                <hotelcode
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter hotel code"
+                        fieldLabel="Hotel Code"
+                        name="./hotelCode"
+                        xtype="textfield"/>
+                <chaincode
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter chain code"
+                        fieldLabel="Chain Code"
+                        name="./chainCode"
+                        xtype="textfield"/>
+                <hotelId
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter hotel id for non opera hotels"
+                        fieldLabel="Hotel ID"
+                        name="./offlineHotelId"
+                        xtype="numberfield"/>
+                <hotelPriority
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter hotel priority number"
+                        fieldLabel="Hotel Priority"
+                        name="./hotelPriority"
+                        xtype="numberfield"/>
+                <hotelsCity
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Enter city name of the hotel"
+                        fieldLabel="Hotel City Name"
+                        name="./hotelsCity"
+                        xtype="textfield"/>
+                <hotelShortDescription
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Enter Short Description for Hotel"
+                        fieldLabel="Hotel Short Description"
+                        name="./hotelShortDescription"
+                        xtype="textarea"/>
+                <hotelsDescription
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Enter the hotel description only for By destination variant, add br tag for alignment"
+                        fieldLabel="Hotel Description"
+                        name="./hotelsDescription"
+                        xtype="textarea"/>
+                <hotelAddress
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter the hotel address, add br tag for alignment"
+                        fieldLabel="Hotel Address"
+                        name="./hotelAddress"
+                        xtype="textarea"/>
+                <latitude
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter latitude for hotel"
+                        fieldLabel="Latitude"
+                        name="./hotelLatitude"
+                        xtype="textfield"/>
+                <longitude
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter longitude for hotel"
+                        fieldLabel="Longitude"
+                        name="./hotelLongitude"
+                        xtype="textfield"/>
+                <callCenter
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="click to add call center email ids for manual cancellation"
+                        fieldLabel="Manual Cancellation in OWS"
+                        hideLabel="{Boolean}false"
+                        name="./callCenterEmailId"
+                        orderable="{Boolean}true"
+                        xtype="multifield">
+                    <fieldConfig
+                            jcr:primaryType="cq:Widget"
+                            allowBlank="{Boolean}true"
+                            hideLabel="{Boolean}false"
+                            name="./callCenterEmailId"
+                            xtype="pathfield"/>
+                </callCenter>
+                <ccEmailIds
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="click to add email ids which should be kept in cc for manual cancellation"
+                        fieldLabel="CC Email Ids for Manual Cancellation"
+                        hideLabel="{Boolean}false"
+                        name="./ccEmailIds"
+                        orderable="{Boolean}true"
+                        xtype="multifield">
+                    <fieldConfig
+                            jcr:primaryType="cq:Widget"
+                            allowBlank="{Boolean}true"
+                            hideLabel="{Boolean}false"
+                            name="./ccEmailIds"
+                            xtype="pathfield"/>
+                </ccEmailIds>
+                <hotelTelephoneNumber
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Add hotel telephone number"
+                        fieldLabel="Telephone Number"
+                        hideLabel="{Boolean}false"
+                        name="./hotelTelephoneNumber"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <hotelFaxNumbers
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Add hotel fax number"
+                        fieldLabel="Fax Number"
+                        hideLabel="{Boolean}false"
+                        name="./hotelFaxNumbers"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <hotelEmailIds
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Add hotel email id"
+                        fieldLabel="Email Id"
+                        hideLabel="{Boolean}false"
+                        name="./hotelEmailIds"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <hotelPrice
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Add hotel price and description.
+                            To enter 'Rs.' follow this format -> |Rs.| to display ruppee symbol / For Fortune hotels, enter only price"
+                        fieldLabel="Hotel Price and Description"
+                        hideLabel="{Boolean}false"
+                        name="./hotelPrice"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <fortuneHotelIdentifier
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="check if this is a fortune hotel"
+                        fieldLabel="Fortune Hotel Identifier"
+                        name="./fortuneHotelIdentifier"
+                        type="checkbox"
+                        xtype="selection"/>
+                <welcomHeritageIdentifier
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="check if this is a welcomheritage  hotel"
+                        fieldLabel="WelcomHeritage Hotel Identifier"
+                        name="./welcomHeritageIdentifier"
+                        type="checkbox"
+                        xtype="selection"/>
+                <hotelLogo
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="choose logo for this hotel"
+                        fieldLabel="Hotel Logo"
+                        name="./hotelLogo"
+                        rootPath="/content/dam"
+                        xtype="pathfield"/>
+                <offerHotelImage
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="choose hotel image"
+                        fieldLabel="Image"
+                        name="./offerHotelImage"
+                        rootPath="/content/dam"
+                        xtype="pathfield"/>
+                <fortuneHotelsLink
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter the redirection link"
+                        fieldLabel="Fortune/WelcomHeritage Hotel Link"
+                        name="./fortuneHotelsLink"
+                        xtype="textfield"/>
+                <hotelRedirectPath
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="choose the redirect path on clicking the hotel image, prepend 'http://' or 'https://' for external redirection(applicable for fortune hotels)"
+                        fieldLabel="Redirect Path"
+                        name="./hotelRedirectPath"
+                        xtype="pathfield"/>
+                <lowestAverageRates
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Enter lowest average rate ex.for 25,000/Night follow this format->   25,000||/Night"
+                        fieldLabel="Lowest Avg Rate"
+                        hideLabel="{Boolean}false"
+                        name="./lowestAverageRates"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <hotelBrand
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Enter Hotel Brand"
+                        fieldLabel="Hotel Brand"
+                        hideLabel="{Boolean}false"
+                        name="./hotelBrand"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <hotelLocationCity
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Enter Hotel Location"
+                        fieldLabel="Hotel Location"
+                        hideLabel="{Boolean}false"
+                        name="./hotelLocationCity"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <recommendedHotelsPath
+                        jcr:primaryType="cq:Widget"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Click the '+' to add recommended Hotels Path"
+                        fieldLabel="Recommended Hotels"
+                        hideLabel="{Boolean}false"
+                        matchBaseName="{Boolean}false"
+                        name="./recommendedHotelsPath"
+                        prefix="./"
+                        xtype="multicompositefield" >
+                    <fieldConfigs jcr:primaryType="cq:WidgetCollection">
+                        <path
+                                jcr:primaryType="cq:Widget"
+                                allowBlank="{Boolean}true"
+                                fieldDescription="Recommended Hotel Path"
+                                fieldLabel="Path"
+                                hideLabel="{Boolean}false"
+                                name="recommendedHotels"
+                                xtype="pathfield"/>
+                    </fieldConfigs>
+                </recommendedHotelsPath>
+                <hotelDistance
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Enter Hotel Distance ex.for 5Kms follow this format->   5||Kms"
+                        fieldLabel="Hotel Distance"
+                        hideLabel="{Boolean}false"
+                        name="./hotelDistance"
+                        orderable="{Boolean}true"
+                        xtype="textfield" />
+                <hotelDining
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Enter Hotel Dining details"
+                        fieldLabel="Hotel Dining Details"
+                        hideLabel="{Boolean}false"
+                        name="./hotelDining"
+                        orderable="{Boolean}true"
+                        xtype="textarea" />
+                <hotelKeyHighlights
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Enter Hotel KeyHighLights"
+                        fieldLabel="Hotel Key Highlights"
+                        hideLabel="{Boolean}false"
+                        name="./hotelKeyHighlights"
+                        orderable="{Boolean}true"
+                        xtype="textarea" />
+                <hotelViewGallery
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="click to add images for hotel view gallery"
+                        fieldLabel="Hotel View Gallery"
+                        hideLabel="{Boolean}false"
+                        name="./hotelViewGallery"
+                        orderable="{Boolean}true"
+                        xtype="multifield">
+                    <fieldConfig
+                            jcr:primaryType="cq:Widget"
+                            allowBlank="{Boolean}true"
+                            fieldDescription="choose images"
+                            fieldLabel="Image"
+                            hideLabel="{Boolean}false"
+                            name="./hotelViewGallery"
+                            xtype="pathfield"/>
+                </hotelViewGallery>
+                <hotelTravelClickVideo
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Travel Click Video Code Snippet"
+                        fieldLabel="Travel Click Video"
+                        name="./hotelTravelClickVideo"
+                        xtype="textarea"/>
+                <additionalProperties
+                        jcr:primaryType="cq:Widget"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Click the '+' to add additional room properties"
+                        fieldLabel="Additional Properties"
+                        hideLabel="{Boolean}false"
+                        matchBaseName="{Boolean}false"
+                        name="./additionalPropertiesListHotel"
+                        prefix="./"
+                        xtype="multicompositefield">
+                    <fieldConfigs jcr:primaryType="cq:WidgetCollection">
+                        <title
+                                jcr:primaryType="cq:Widget"
+                                allowBlank="{Boolean}true"
+                                fieldDescription="Enter property name"
+                                fieldLabel="Name"
+                                hideLabel="{Boolean}false"
+                                name="PropName"
+                                width="90"
+                                xtype="textfield"/>
+                        <value
+                                jcr:primaryType="cq:Widget"
+                                allowBlank="{Boolean}true"
+                                fieldDescription="Enter property value"
+                                fieldLabel="Value"
+                                hideLabel="{Boolean}false"
+                                name="PropValue"
+                                width="90"
+                                xtype="textfield"/>
+                    </fieldConfigs>
+                </additionalProperties>
+                <offerType
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Add hotel type tags"
+                        fieldLabel="Category"
+                        name="./offerType"
+                        xtype="tags"/>
+                <airportName
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="add airport tags which is nearest to this hotel"
+                        fieldLabel="Airport Name"
+                        name="./airportName"
+                        xtype="tags"/>
+                <!--viewGallery
+                        jcr:primaryType="cq:Widget"
+                        addItemLabel="Add Item"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="click to add images for view gallery"
+                        fieldLabel="View Gallery"
+                        hideLabel="{Boolean}false"
+                        name="./reservationViewGallery"
+                        orderable="{Boolean}true"
+                        xtype="multifield"/-->
+                <responsibleLuxury
+                        jcr:primaryType="cq:Widget"
+                        allowBlank="{Boolean}true"
+                        fieldLabel="Responsible Luxury"
+                        fieldDescription="enter responsible luxury title and points"
+                        hideLabel="{Boolean}false"
+                        name="./responsibleLuxury"
+                        xtype="richtext"/>
+                <managerImage
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="choose manager image"
+                        fieldLabel="Manager Image"
+                        name="./managerImage"
+                        rootPath="/content/dam"
+                        xtype="pathfield"/>
+                <managerName
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter manager name"
+                        fieldLabel="Manager Name"
+                        name="./managerName"
+                        xtype="textfield"/>
+                <managerDesignation
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="enter manager designation"
+                        fieldLabel="Manager Designation"
+                        name="./managerDesignation"
+                        xtype="textfield"/>
+                <managerMessage
+                        jcr:primaryType="cq:Widget"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="enter manager's message"
+                        fieldLabel="Manager's Message"
+                        hideLabel="{Boolean}false"
+                        name="./managerMessage"
+                        xtype="richtext"/>
+                <interOffer1
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Select a Offer to be Displayed on Interstitial Page"
+                        fieldLabel="Interstitial Page Offer"
+                        name="./interOffer1"
+                        rootPath="/content"
+                        xtype="pathfield"/>
+                <interOffer2
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Select a Offer to be Displayed on Interstitial Page"
+                        fieldLabel="Interstitial Page Offer"
+                        name="./interOffer2"
+                        rootPath="/content"
+                        xtype="pathfield"/>
+                <nearestTo
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Add Location type tags"
+                        fieldLabel="Location"
+                        name="./nearestTo"
+                        xtype="tags"/>
+                <addOnsPropertyList
+                        jcr:primaryType="cq:Widget"
+                        allowBlank="{Boolean}true"
+                        fieldDescription="Click (+) to add your content"
+                        fieldLabel="AddOns"
+                        hideLabel="{Boolean}false"
+                        matchBaseName="{Boolean}false"
+                        name="./addOnsPropertyList"
+                        prefix="./"
+                        width="250"
+                        xtype="multicompositefield">
+                    <fieldConfigs jcr:primaryType="cq:WidgetCollection">
+                        <title
+                                jcr:primaryType="cq:Widget"
+                                allowBlank="{Boolean}true"
+                                fieldLabel="AddOn Code"
+                                fieldDescription="enter addon package code"
+                                hideLabel="{Boolean}false"
+                                name="packageCode"
+                                width="250"
+                                xtype="textfield"/>
+                        <url
+                                jcr:primaryType="cq:Widget"
+                                allowBlank="{Boolean}true"
+                                escapeAmp="{Boolean}false"
+                                fieldLabel="AddOn Image"
+                                fieldDescription="choose image for this addon"
+                                hideLabel="{Boolean}false"
+                                hideTrigger="{Boolean}false"
+                                name="addOnImage"
+                                parBrowse="{Boolean}false"
+                                rootPath="/content/dam"
+                                rootTitle="Websites"
+                                showTitleInTree="{Boolean}true"
+                                width="250"
+                                xtype="pathfield"/>
+                        <addOnDesc
+                                jcr:primaryType="cq:Widget"
+                                allowBlank="{Boolean}true"
+                                fieldDescription="Enter long desciption for AddOns"
+                                fieldLabel="Description"
+                                hideLabel="{Boolean}false"
+                                enableSourceEdit="true"
+                                width="500"
+                                name="addOnDesc"
+                                xtype="richtext"/>
+                    </fieldConfigs>
+                </addOnsPropertyList>
+                <thresholdDistance
+                        jcr:primaryType="cq:Widget"
+                        fieldDescription="Enter Threshold distance in KM"
+                        fieldLabel="Threshold Distance"
+                        name="./thresholdDistance"
+                        xtype="textfield"
+                />
+            </items>
+        </basic>
+    </items>
+</jcr:root>
